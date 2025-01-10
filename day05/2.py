@@ -1,3 +1,9 @@
+import sys
+
+din=1
+if len(sys.argv)>1:
+    din=int(sys.argv[1])
+
 f=open("input.txt")
 
 class intcode:
@@ -64,6 +70,60 @@ class intcode:
                     a=self.data[self.data[self.pointer+1]]
                 output+=str(a)
                 self.pointer+=2
+            elif opc==5:
+                if self.paramode1==1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                if self.paramode2==1:
+                    b=self.data[self.pointer+2]
+                else:
+                    b=self.data[self.data[self.pointer+2]]
+                if a!=0:
+                    self.pointer=b
+                else:
+                    self.pointer+=3
+            elif opc==6:
+                if self.paramode1==1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                if self.paramode2==1:
+                    b=self.data[self.pointer+2]
+                else:
+                    b=self.data[self.data[self.pointer+2]]
+                if a!=0:
+                    self.pointer+=3
+                else:
+                    self.pointer=b
+            elif opc==7:
+                if self.paramode1==1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                if self.paramode2==1:
+                    b=self.data[self.pointer+2]
+                else:
+                    b=self.data[self.data[self.pointer+2]]
+                if a<b:
+                    self.data[self.data[self.pointer+3]]=1
+                else:
+                    self.data[self.data[self.pointer+3]]=0
+                self.pointer+=4
+            elif opc==8:
+                if self.paramode1==1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                if self.paramode2==1:
+                    b=self.data[self.pointer+2]
+                else:
+                    b=self.data[self.data[self.pointer+2]]
+                if a==b:
+                    self.data[self.data[self.pointer+3]]=1
+                else:
+                    self.data[self.data[self.pointer+3]]=0
+                self.pointer+=4
             elif opc==99:
                 halt=True
                 self.pointer+=1
@@ -79,6 +139,6 @@ for line in f.readlines():
 program=intcode(code)
 print(program)
 
-result=program.execute(1)
+result=program.execute(din)
 
 print(result)
