@@ -1,5 +1,13 @@
 f=open("input.txt")
 
+class intcode:
+    def __init__(self,data):
+        self.data=data
+        self.pointer=0
+
+    def read(self,pointer=self.pointer):
+        #placeholder
+
 def execute(intcode,noun,verb):
     intcode[1]=noun
     intcode[2]=verb
