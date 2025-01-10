@@ -5,37 +5,79 @@ class intcode:
         self.data=data
         self.pointer=0
 
-    def read(self,pointer=self.pointer):
+    def get_opcode(self):
         #placeholder
+        word=str(self.data[self.pointer])
+        self.paramode1=0
+        self.paramode2=0
+        self.paramode3=0
+        if len(word)<2:
+            self.opcode=int(word)
+        else:
+            self.opcode=int(str(self.data[self.pointer])[-2:])
+            if len(word)>=5:
+                self.paramode3=int(word[-5])
+            if len(word)>=4:
+                self.paramode2=int(word[-4])
+            if len(word)>=3:
+                self.paramode1=int(word[-3])
+        return self.opcode
 
-def execute(intcode,noun,verb):
-    intcode[1]=noun
-    intcode[2]=verb
-    for i in range(0,len(intcode),4):
-        opcode=intcode[i+0]
-        a=intcode[intcode[i+1]]
-        b=intcode[intcode[i+2]]
-        if opcode==1:
-            intcode[intcode[i+3]]=a+b
-        elif opcode==2:
-            intcode[intcode[i+3]]=a*b
-        elif opcode==99:
-            break
-    return intcode
+    def execute(self,din=None):
+        halt=False
+        output=""
+        while True:
+            if halt:
+                break
+            opc=self.get_opcode()
+            print(self.pointer,opc,output)
+            if opc==1:
+                if self.paramode1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                if self.paramode2:
+                    b=self.data[self.pointer+2]
+                else:
+                    b=self.data[self.data[self.pointer+2]]
+                self.data[self.data[self.pointer+3]]=a+b
+                self.pointer+=4
+            elif opc==2:
+                if self.paramode1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                if self.paramode2:
+                    b=self.data[self.pointer+2]
+                else:
+                    b=self.data[self.data[self.pointer+2]]
+                self.data[self.data[self.pointer+3]]=a*b
+                self.pointer+=4
+            elif opc==3:
+                self.data[self.pointer+1]=din
+                self.pointer+=2
+            elif opc==4:
+                if self.paramode1:
+                    a=self.data[self.pointer+1]
+                else:
+                    a=self.data[self.data[self.pointer+1]]
+                output+=str(a)
+                self.pointer+=2
+            elif opc==99:
+                halt=True
+                self.pointer+=1
+            else:
+                return "invalid opcode"
+        return output
 
-intcode=[]
+code=[]
 for line in f.readlines():
     for c in line.strip().split(","):
-        intcode.append(int(c))
+        code.append(int(c))
 
-answer=[]
-for noun in range(100):
-    for verb in range(100):
-        program=intcode.copy()
-        result=execute(program,noun,verb)
-        if result[0]==19690720:
-            answer=result.copy()
-            break
+program=intcode(code)
+print(program)
 
-print(answer[0],(100*answer[1])+answer[2])
+result=program.execute(1)
 
+print(result)
