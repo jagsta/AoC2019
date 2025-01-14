@@ -23,6 +23,8 @@ for line in f.readlines():
 print(asteroids)
 for asteroid in asteroids:
     for target in asteroids:
+        if target==asteroid:
+            continue
         a=asteroid.split(".")
         ax=int(a[0])
         ay=int(a[1])
@@ -33,8 +35,32 @@ for asteroid in asteroids:
         dy=ty-ay
         gcd=math.gcd(dx,dy)
         if gcd>1:
-            for x in range(0,dx,gcd):
-                for y in range(0,dy,gcd):
-                    if str(x)+"."+str(y) in asteroids:
-                        print("asteroid blocks LoS at",x,y)
-            print(asteroid,"has common denominator with",target,": dx dy gcd=",dx,dy,gcd)
+#            print(asteroid,"has common denominator with",target,": dx dy gcd=",dx,dy,gcd)
+            ix=dx//gcd
+            iy=dy//gcd
+            x=ax+ix
+            y=ay+iy
+            blocked=0
+            while True:
+                if str(x)+"."+str(y)==asteroid:
+                    continue
+                elif str(x)+"."+str(y)==target:
+                    break
+                elif str(x)+"."+str(y) in asteroids:
+                    blocked=1
+#                    print("asteroid blocks LoS at",x,y)
+                    break
+                else:
+                    x+=ix
+                    y+=iy
+            if blocked==0:
+                asteroids[asteroid]+=1
+#                print(asteroid,"to",target,"is NOT blocked, count is:",asteroids[asteroid])
+#            else:
+#                print(asteroid,"to",target,"is blocked, count is:",asteroids[asteroid])
+
+        else:
+            asteroids[asteroid]+=1
+#            print(asteroid,"to",target,"does not intersect any other grid location, count is:",asteroids[asteroid])
+for v in sorted(asteroids, key=asteroids.get):
+    print(v, asteroids[v])
