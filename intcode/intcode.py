@@ -30,21 +30,21 @@ class intcode:
             try:
                 return self.data[self.data[self.pointer+param]]
             except:
-                print("index out of range, growing program")
+                #print("index out of range, growing program")
                 self.data[self.data[self.pointer+param]]=0
                 return 0
         elif mode==1:
             try:
                 return self.data[self.pointer+param]
             except:
-                print("index out of range, growing program")
+                #print("index out of range, growing program")
                 self.data[self.pointer+param]=0
                 return 0
         elif mode==2:
             try:
                 return self.data[self.offset+self.data[self.pointer+param]]
             except:
-                print("index out of range, growing program")
+                #print("index out of range, growing program")
                 self.data[self.offset+self.data[self.pointer+param]]=0
                 return 0
         else:
@@ -57,8 +57,8 @@ class intcode:
         except:
             raise ValueError("invalid parameter number")
         if mode==0:
-            print("setting position",self.data[self.pointer+param],"to",value)
-            self.data[self.data[self.pointer+param]]=value
+            #print("setting position",param,self.data[self.pointer+param],"to",value,type(value))
+            self.data[int(self.data[self.pointer+param])]=value
         elif mode==1:
             raise ValueError("write attempted in immediate mode")
         elif mode==2:
@@ -78,23 +78,23 @@ class intcode:
         else:
             self.opcode=int(str(self.data[self.pointer])[-2:])
             if len(word)>=5:
-                print("setting param 3 mode to",int(word[-5]))
+#                print("setting param 3 mode to",int(word[-5]))
                 self.paramode[3]=int(word[-5])
             if len(word)>=4:
-                print("setting param 2 mode to",int(word[-4]))
+#                print("setting param 2 mode to",int(word[-4]))
                 self.paramode[2]=int(word[-4])
             if len(word)>=3:
-                print("setting param 1 mode to",int(word[-3]))
+#                print("setting param 1 mode to",int(word[-3]))
                 self.paramode[1]=int(word[-3])
         return self.opcode
 
-    def execute(self,din=None):
+    def execute(self,din=""):
         halt=False
         while True:
             if halt:
                 break
             opc=self.get_opcode()
-            print(self.pointer,opc)
+            #print(self.pointer,opc)
             if opc==1:
                 a=self.get_value(1)
                 b=self.get_value(2)
