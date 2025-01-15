@@ -147,7 +147,7 @@ class intcode:
             elif opc==9:
                 a=self.get_value(1)
                 self.offset+=a
-                print("offset changed by",a,"to",self.offset)
+#                print("offset changed by",a,"to",self.offset)
                 self.pointer+=2
             elif opc==99:
                 halt=True
