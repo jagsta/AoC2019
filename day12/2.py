@@ -1,6 +1,7 @@
 import sys
 import re
 from itertools import permutations
+import math
 
 file="input.txt"
 
@@ -14,6 +15,9 @@ class planet:
         self.x=int(x)
         self.y=int(y)
         self.z=int(z)
+        self.dx=0
+        self.dy=0
+        self.dz=0
         self.vx=0
         self.vy=0
         self.vz=0
@@ -26,6 +30,10 @@ class planet:
         self.kin=abs(self.vx)+abs(self.vy)+abs(self.vz)
         self.total=self.pot*self.kin
 
+    def deltas(self):
+        self.dx+=self.vx
+        self.dy+=self.vy
+        self.dz+=self.vz
 
     def __str__(self):
         return f'x:{self.x} vx:{self.vx}\ny:{self.y} vy:{self.vy}\nz:{self.z} vz:{self.vz}'
@@ -43,14 +51,14 @@ for line in f.readlines():
 for p in planets:
     print(p)
 
-interval=1000
 t=0
-endt=1000
+endt=1000000
+interval=endt
 pairs=[]
 for i,p in enumerate(planets[:-1]):
     for p2 in planets[i+1:]:
         pairs.append([p,p2])
-
+zeros=[None,None,None]
 print(len(pairs))
 #pairs=list(permutations(planets,2))
 while True:
@@ -75,11 +83,31 @@ while True:
         elif p[0].z<p[1].z:
             p[0].vz+=1
             p[1].vz-=1
+    zeropoint=[True,True,True]
     for p in planets:
-        p.x = p.x+p.vx
-        p.y = p.y+p.vy
-        p.z = p.z+p.vz
+        p.deltas()
+        if p.vx!=0:
+            p.x = p.x+p.vx
+            zeropoint[0]=False
+        if p.vy!=0:
+            p.y = p.y+p.vy
+            zeropoint[1]=False
+        if p.vz!=0:
+            p.z = p.z+p.vz
+            zeropoint[2]=False
     t+=1
+    if zeropoint[0]:
+        print(f'vx zeropoint at {t}, p0dx={planets[0].dx}, p1dx={planets[1].dx}, p2dx={planets[2].dx}, p3dx={planets[3].dx}')
+        if zeros[0] is None and planets[0].dx==0 and planets[1].dx == 0 and planets[2].dx == 0 and planets[3].dx==0:
+            zeros[0]=t
+    if zeropoint[1]:
+        print(f'vy zeropoint at {t}, p0dy={planets[0].dy}, p1dy={planets[1].dy}, p2dy={planets[2].dy}, p3dy={planets[3].dy}')
+        if zeros[1] is None and planets[0].dy==0 and planets[1].dy == 0 and planets[2].dy == 0 and planets[3].dy==0:
+            zeros[1]=t
+    if zeropoint[2]:
+        print(f'vz zeropoint at {t}, p0dz={planets[0].dz}, p1dz={planets[1].dz}, p2dz={planets[2].dz}, p3dz={planets[3].dz}')
+        if zeros[2] is None and planets[0].dz==0 and planets[1].dz == 0 and planets[2].dz == 0 and planets[3].dz==0:
+            zeros[2]=t
     if t % interval==0:
         print(f'after {t} steps:')
         for p in planets:
@@ -88,3 +116,4 @@ while True:
         print()
 
 print(f'Sum of total energy: {planets[0].total}+{planets[1].total}+{planets[2].total}+{planets[3].total} = {planets[0].total+planets[1].total+planets[2].total+planets[3].total}')
+print(f'lcm of {zeros[0],zeros[1],zeros[2]} is {math.lcm(zeros[0],zeros[1],zeros[2])}')
