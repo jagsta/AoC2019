@@ -154,7 +154,7 @@ class intcode:
                 self.pointer+=1
                 return 99,0
             else:
-                raise ValueError("invalid opcode")
+                raise ValueError("invalid opcode at",self.pointer,": ",opc)
 
 #code=GrowingList()
 #for line in f.readlines():
