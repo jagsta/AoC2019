@@ -60,16 +60,23 @@ def process(material,quantity):
         return quantity
 
 totalore=1000000000000
-ticks=0
-ore=process("FUEL",1)
-totalfuel=ore
+ticksize=8
+marker=0
 
 while True:
-    ticks+=1
-    if ticks%1000==0:
-        print(ticks)
-    ore=process("FUEL",ticks)
+    ticks = 10**ticksize
+    marker+=ticks
+    ore=process("FUEL",marker)
+    print("Trying",marker,": requires",ore,"ore")
     if totalore<ore:
+        #we overshot, back off by one tick and reduce tick size
+        marker-=ticks
+        ticksize-=1
+    elif totalore==ore:
+        #Jeez that was lucky
+        break
+    if ticksize<0:
+        #we're into fractions of FUEL, give up
         break
 
-print(ticks)
+print("Maximum possible fuel we can produce with",totalore,"is",marker,"units")
