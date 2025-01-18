@@ -1,5 +1,6 @@
 import sys
 import re
+import functools
 
 class reaction:
     def __init__(self,quantity):
@@ -33,6 +34,7 @@ for r in reactions:
 
 ore=0
 remains={}
+@functools.cache
 def process(material,quantity):
     q=0
     #first, how many batches do we need (quantity/material.quantity)
@@ -41,24 +43,33 @@ def process(material,quantity):
     #for each ingredient, if it exists in reactions(i.e. is not ORE) recurse with n x quantity req'd where n=remaining/batch size, rounded up
     if material in reactions:
         if material in remains:
-            print("we have",remains[material],"already")
+#            print("we have",remains[material],"already")
             batches=-(-(quantity-remains[material]) // reactions[material].quantity) # janky way to round up
             remains[material]+=(batches*reactions[material].quantity) - quantity
         else:
             batches=-(-quantity // reactions[material].quantity) # janky way to round up
             remains[material]=(batches*reactions[material].quantity) - quantity
-        print(batches,"batches of",material,"required, remainder",remains[material])
+#        print(batches,"batches of",material,"required, remainder",remains[material])
 
 
         for m in reactions[material].needs:
-            print("we need",-(-batches*reactions[material].needs[m]),m)
+#            print("we need",-(-batches*reactions[material].needs[m]),m)
             q+=process(m,-(-batches*reactions[material].needs[m]))
         return q
     else:
         return quantity
 
-
+totalore=1000000000000
+ticks=0
 ore=process("FUEL",1)
-print(ore)
-print(remains)
+totalfuel=ore
 
+while True:
+    ticks+=1
+    if ticks%1000==0:
+        print(ticks)
+    ore=process("FUEL",ticks)
+    if totalore<ore:
+        break
+
+print(ticks)
