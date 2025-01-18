@@ -1,6 +1,8 @@
 import sys
 import intcode
-sys.setrecursionlimit(100000)
+import networkx as nx
+sys.setrecursionlimit(1500)
+
 
 file="input.txt"
 
@@ -14,6 +16,8 @@ for line in f.readlines():
 program=intcode.intcode(code)
 
 print(program)
+
+G=nx.Graph()
 
 grid={} # key = x.y, value=0 (wall), 1(space), 2(target)
 dirs=[{"d":"n","x":0,"y":-1,"n":2},{"d":"s","x":0,"y":1,"n":1},{"d":"w","x":-1,"y":0,"n":0},{"d":"e","x":1,"y":0,"n":3}]
@@ -30,6 +34,7 @@ def try_move(direction,x,y):
             continue
         elif result==1:
             #space, we have moved
+            G.add_edge(str(x)+"."+str(y),str(x+dirs[d]["x"])+"."+str(y+dirs[d]["y"]))
             x=x+dirs[d]["x"]
             y=y+dirs[d]["y"]
             r=try_move(d,x,y)
@@ -37,13 +42,13 @@ def try_move(direction,x,y):
         elif result==2:
             # we've found the target
             print("FOUND IT at ",x+dirs[d]["x"],y+dirs[d]["y"])
-            return 1
-    return 0
+            G.add_edge(str(x)+"."+str(y),str(x+dirs[d]["x"])+"."+str(y+dirs[d]["y"]))
+            return str(x+dirs[d]["x"])+"."+str(y+dirs[d]["y"])
+    return r
 
-found=False
 grid["0.0"]=1
-result=try_move(0,0,0)
-print(result)
+target=try_move(0,0,0)
+print(target)
 
 print(grid)
 
@@ -86,4 +91,5 @@ for line in gridmap:
         s+=c
     print(s)
 
-
+distance=nx.dijkstra_path_length(G, "0.0", target)
+print(distance)
