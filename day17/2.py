@@ -132,11 +132,60 @@ while True:
 print(moves)
 #Manual inspection here gives the following:
 #R4R10R8R4R10R6R4R4R10R8R4R10R6R4R4L12R6L12R10R6R4R4L12R6L12R4R10R8R4R10R6R4R4L12R6L12
-#A=R4R10R8R4R10R6R4
-#B=R4L12R6L12
-#C=R10R6R4
-#A,A,B,C,B,A,B
+A="R,4,R,10,R,8,R,4"
+B="R,4,L,12,R,6,L,12"
+C="R,10,R,6,R,4"
+M="A,C,A,C,B,C,B,A,C,B"
+F="n"
+AA=[]
+AB=[]
+AC=[]
+AM=[]
+AF=[]
+for i in A:
+    AA.append(ord(i))
+for i in B:
+    AB.append(ord(i))
+for i in C:
+    AC.append(ord(i))
+for i in M:
+    AM.append(ord(i))
+for i in F:
+    AF.append(ord(i))
 
+cmds=[AF,AC,AB,AA,AM]
+for c in cmds:
+    print(len(c))
+    c.append(10)
 
+print(AA)
+print(AB)
+print(AC)
+print(AM)
+print(AF)
+
+cmd=[]
+#print(program)
+s=""
+while True:
+    r,v=program.execute(cmd)
+    #print(r,v)
+    if r==1:
+        if v==10:
+            print(s)
+            s=""
+        elif v<256:
+            s+=chr(v)
+        else:
+            s+=str(v)
+    elif r==0:
+        cmd=cmds.pop()
+        print("sending",cmd)
+    elif r==99:
+        print(s)
+        print(r,v)
+        break
+    else:
+        print("unknown response code",r,v)
 
 
