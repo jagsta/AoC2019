@@ -1,4 +1,5 @@
 import sys
+import itertools
 import networkx as nx
 
 file="input.txt"
@@ -14,6 +15,7 @@ P=nx.Graph()
 origin=""
 keys={}
 locks={}
+okeys={}
 gdict={}
 y=0
 x=0
@@ -24,21 +26,25 @@ for line in f.readlines():
             if c.isupper():
                 print("Lock",c,"at",x,y)
                 locks[str(x)+"."+str(y)]=c
-                G.add_node(str(x)+"."+str(y),char=c,isLock=True)
+                G.add_node(str(x)+"."+str(y),char=c,isUnlocked=False)
             elif c.islower():
                 print("key",c,"at",x,y)
                 keys[str(x)+"."+str(y)]=c
+                okeys[str(x)+"."+str(y)]=c
                 G.add_node(str(x)+"."+str(y),char=c,isKey=True)
             elif c=="@":
                 print("origin at",x,y)
                 origin=str(x)+"."+str(y)
             for d in dirs:
-                if c.isupper():
-                    break
+                # Only add edges if it's not a lock
+                #if c.isupper():
+                #    break
                 print("trying dir",d)
                 newx=x+d[0]
                 newy=y+d[1]
-                if str(newx)+"."+str(newy) in gdict and gdict[str(newx)+"."+str(newy)]!="#" and gdict[str(newx)+"."+str(newy)].isupper() is not True:
+                #if str(newx)+"."+str(newy) in gdict and gdict[str(newx)+"."+str(newy)]!="#" and gdict[str(newx)+"."+str(newy)].isupper() is not True:
+                if str(newx)+"."+str(newy) in gdict and gdict[str(newx)+"."+str(newy)]!="#":
+                    #only add edges if it's not a lock
                     print(x,y,"is adjacent to a space")
                     G.add_edge(str(x)+"."+str(y),str(newx)+"."+str(newy))
 
@@ -47,21 +53,20 @@ for line in f.readlines():
     y+=1
 
 print(origin)
+okeys[origin]="@"
 print(gdict)
+#We now have a graph of paths which are not blocked by locks
 print(G.nodes(data=True))
 print(G.edges)
 print(keys)
 keysleft=dict(keys)
 locksleft=dict(locks)
 
-def get_next(orig,keysleft):
-    next=set()
-    for key in keysleft:
-        if nx.has_path(G,orig,key):
-            next.add(key)
-    return next
+#This doesnt' work, try using restricted_view with list of nodes supplied to suppress based on isLocked dict copies?
 
-def permute(orig,locksleft,keysleft,length,ph):
+def permute(graph,orig,keysleft,length,ph):
+    view=nx.subgraph_view(graph,filter_node=filter_locks)
+    print(view.nodes)
     global tried
     global pruned
     tried+=1
@@ -71,50 +76,78 @@ def permute(orig,locksleft,keysleft,length,ph):
     if shortest < length:
 #        print("Already too far, killing this path")
         return 0
-    for key in keysleft:
-            thisl=length
-            thisph=ph
-#        try:
-#            print(f'trying from {orig} to {keys[key]} at {key}, length is {length} and path is {ph}')
-            path=nx.shortest_path(G,source=orig,target=key)
-#            print(f'path is {path}')
-            blocked=False
-            for p in locksleft:
-                if p in path:
-#                    print(f'{p} is a key in locksleft, so blocked')
-                    blocked=True
-                    pruned+=1
-                    break
-            if not blocked:
-                thisph+=keys[key]
-                thisl+=len(path)-1
-#                print(orig,key,keys[key],len(path),thisl)
-                k=dict(keysleft)
-                k.pop(key)
-#                print(f'{len(k)} keys left: {k}')
-                l=dict(locksleft)
-                for coord,lock in l.items():
-#                    print(f'trying {keys[key].upper()} and {lock}')
-                    if keys[key].upper()==lock:
-                        l.pop(coord)
-                        break
-                if len(k)>0:
-                    thisl+=permute(key,l,k,thisl,thisph)
-                else:
+    for node in get_next(view,orig,keysleft):
+            g=graph.copy()
+            print(orig,node)
+            thisl=length+pathlengths[orig][node]
+            thisph=ph+keys[node]
+            k=dict(keysleft)
+            k.pop(node)
+            g.nodes[node]['isUnlocked']=True
+            if len(k)>0:
+                thisl+=permute(g,node,k,thisl,thisph)
+            else:
 #                    print(f'final distance was {thisl} for path {thisph}')
-                    ph=""
-                    if thisl<shortest:
-                        shortest=thisl
+                ph=""
+                if thisl<shortest:
+                    shortest=thisl
 #        except Exception as error:
 #            print("An exception occurred:", error)
 #            continue
     return 0
+
+#view=nx.subgraph_view(G,filter_node=filter_locks)
+#print(f'view: {view.nodes}')
+#for node in get_next(view,origin,keys)
+#    pl = nx.shortest_path_length(view,origin,node)
+#    P.add_edge(origin,node,steps=pl)
+
+pathlengths={}
+for i in itertools.combinations(okeys,2):
+    if i[0] not in pathlengths:
+        pathlengths[i[0]]={}
+    if i[1] not in pathlengths:
+        pathlengths[i[1]]={}
+    p = nx.shortest_path(G, i[0], i[1])
+    pathlengths[i[0]][i[1]]=len(p)-1
+    pathlengths[i[1]][i[0]]=len(p)-1
+    last=i[0]
+    count=0
+    for step in p[1:]:
+        count+=1
+        if step in locks or step in keys or step==origin:
+            P.add_edge(last,step,steps=count)
+            last=step
+            count=0
+
+
+for s in pathlengths:
+    for t in pathlengths[s]:
+        print(s,t,pathlengths[s][t])
+
+print(P.edges(data=True))
+
+def get_next(graph,orig,keysleft):
+    next=set()
+    for key in keysleft:
+        if nx.has_path(graph,orig,key):
+            next.add(key)
+    return next
+
+def filter_locks(node):
+    #print(G.nodes[node].get('isUnlocked'))
+    #return G.nodes[node]["isUnlocked"]
+    return G.nodes[node].get('isUnlocked',True)
+
 tried=0
 pruned=0
 shortest=10000000
-print("shortest paths:")
-print(get_next(origin,keysleft))
-permute(origin,locksleft,keysleft,0,"")
+print("possible paths:")
+view=nx.subgraph_view(P,filter_node=filter_locks)
+print(f'view: {view.edges}')
+print(get_next(view,origin,keysleft))
+
+permute(P,origin,keysleft,0,"")
 print(shortest)
 print(f'tried {tried}')
 print(f'pruned {pruned}')
