@@ -9,6 +9,7 @@ if len(sys.argv)>1:
 
 f=open(file)
 G=nx.Graph()
+P=nx.Graph()
 
 origin=""
 keys={}
@@ -32,10 +33,12 @@ for line in f.readlines():
                 print("origin at",x,y)
                 origin=str(x)+"."+str(y)
             for d in dirs:
+                if c.isupper():
+                    break
                 print("trying dir",d)
                 newx=x+d[0]
                 newy=y+d[1]
-                if str(newx)+"."+str(newy) in gdict and gdict[str(newx)+"."+str(newy)]!="#":
+                if str(newx)+"."+str(newy) in gdict and gdict[str(newx)+"."+str(newy)]!="#" and gdict[str(newx)+"."+str(newy)].isupper() is not True:
                     print(x,y,"is adjacent to a space")
                     G.add_edge(str(x)+"."+str(y),str(newx)+"."+str(newy))
 
@@ -50,6 +53,13 @@ print(G.edges)
 print(keys)
 keysleft=dict(keys)
 locksleft=dict(locks)
+
+def get_next(orig,keysleft):
+    next=set()
+    for key in keysleft:
+        if nx.has_path(G,orig,key):
+            next.add(key)
+    return next
 
 def permute(orig,locksleft,keysleft,length,ph):
     global tried
@@ -103,6 +113,7 @@ tried=0
 pruned=0
 shortest=10000000
 print("shortest paths:")
+print(get_next(origin,keysleft))
 permute(origin,locksleft,keysleft,0,"")
 print(shortest)
 print(f'tried {tried}')
