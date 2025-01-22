@@ -17,6 +17,7 @@ keys={}
 locks={}
 okeys={}
 gdict={}
+klmap={}
 y=0
 x=0
 for line in f.readlines():
@@ -52,6 +53,13 @@ for line in f.readlines():
     x=0
     y+=1
 
+for key,value in keys.items():
+    klmap[key]=None
+    for lock,lvalue in locks.items():
+        if value==lvalue.lower():
+            klmap[key]=lock
+print(klmap)
+
 print(origin)
 okeys[origin]="@"
 print(gdict)
@@ -64,33 +72,36 @@ locksleft=dict(locks)
 
 #This doesnt' work, try using restricted_view with list of nodes supplied to suppress based on isLocked dict copies?
 
-def permute(graph,orig,keysleft,length,ph):
-    view=nx.subgraph_view(graph,filter_node=filter_locks)
-    print(view.nodes)
+def permute(orig,keysleft,locksleft,length,ph):
+    view=nx.restricted_view(P,locksleft,[])
+#    print(view.nodes)
     global tried
     global pruned
-    tried+=1
-    if tried%100000==0:
-        print(f'tried {tried} paths and pruned {pruned}')
     global shortest
+    global best
+    if tried%10000==0:
+        print(f'tried {tried} paths and pruned {pruned}, current best path is {best} {shortest}')
     if shortest < length:
 #        print("Already too far, killing this path")
+        pruned+=1
         return 0
     for node in get_next(view,orig,keysleft):
-            g=graph.copy()
-            print(orig,node)
+#            print(orig,node)
             thisl=length+pathlengths[orig][node]
             thisph=ph+keys[node]
-            k=dict(keysleft)
+            k=keysleft.copy()
             k.pop(node)
-            g.nodes[node]['isUnlocked']=True
             if len(k)>0:
-                thisl+=permute(g,node,k,thisl,thisph)
+                l=locksleft.copy()
+                l.pop(klmap[node],None)
+                thisl+=permute(node,k,l,thisl,thisph)
             else:
 #                    print(f'final distance was {thisl} for path {thisph}')
-                ph=""
+                tried+=1
                 if thisl<shortest:
                     shortest=thisl
+                    best=ph
+                    ph=""
 #        except Exception as error:
 #            print("An exception occurred:", error)
 #            continue
@@ -103,11 +114,16 @@ def permute(graph,orig,keysleft,length,ph):
 #    P.add_edge(origin,node,steps=pl)
 
 pathlengths={}
+isblocked={}
 for i in itertools.combinations(okeys,2):
     if i[0] not in pathlengths:
         pathlengths[i[0]]={}
     if i[1] not in pathlengths:
         pathlengths[i[1]]={}
+    if i[1] not in isblocked:
+        isblocked[i[1]]={}
+    if i[0] not in isblocked:
+        isblocked[i[0]]={}
     p = nx.shortest_path(G, i[0], i[1])
     pathlengths[i[0]][i[1]]=len(p)-1
     pathlengths[i[1]][i[0]]=len(p)-1
@@ -119,19 +135,38 @@ for i in itertools.combinations(okeys,2):
             P.add_edge(last,step,steps=count)
             last=step
             count=0
+            if step in keys:
+                if i[0] not in isblocked[i[1]]:
+                    isblocked[i[1]][i[0]]=set()
+                if i[1] not in isblocked[i[0]]:
+                    isblocked[i[0]][i[1]]=set()
+                isblocked[i[1]][i[0]].add(step)
+                isblocked[i[0]][i[1]].add(step)
+
 
 
 for s in pathlengths:
     for t in pathlengths[s]:
         print(s,t,pathlengths[s][t])
 
+for s in isblocked:
+    for t in isblocked[s]:
+        print(s,t,isblocked[s][t])
+
 print(P.edges(data=True))
 
 def get_next(graph,orig,keysleft):
     next=set()
     for key in keysleft:
-        if nx.has_path(graph,orig,key):
-            next.add(key)
+        blocked=False
+        if key in isblocked[orig]:
+            for p in isblocked[orig][key]:
+                if p in keysleft:
+                    blocked=True
+                    break
+        if not blocked:
+            if nx.has_path(graph,orig,key):
+                next.add(key)
     return next
 
 def filter_locks(node):
@@ -141,13 +176,14 @@ def filter_locks(node):
 
 tried=0
 pruned=0
+best=""
 shortest=10000000
 print("possible paths:")
 view=nx.subgraph_view(P,filter_node=filter_locks)
 print(f'view: {view.edges}')
 print(get_next(view,origin,keysleft))
 
-permute(P,origin,keysleft,0,"")
+permute(origin,keysleft,locksleft,0,"")
 print(shortest)
 print(f'tried {tried}')
 print(f'pruned {pruned}')
