@@ -2,17 +2,21 @@ import sys
 import itertools
 import networkx as nx
 from collections import deque
+from collections import defaultdict
+from math import inf
 
 file="input.txt"
 dirs=[[0,-1],[1,0],[0,1],[-1,0]]
 
 def k2bm(k,bm):
     # stores the presence of a key labelled a-z in a bitmask
-    return bm + (1<<(ord(k)-ord("a")))
+    #print(f'k2bm received {k} and {bin(bm)}, returning {bin(bm + (1<<(ord(k)-ord("a"))))}')
+    return bm + (1<<(ord(k)-(ord("a")-1)))
 
 def bm2k(k,bm):
     # checks for the presence of a key labelled a-z in a bitmask
-    return True if bm^(1<<ord(k)-ord("a"))==0 else False
+    #print(f'bm2k received {k} and {bin(bm)}, returning {(True if bm&(1<<(ord(k)-(ord("a")-1)))>0 else False)}')
+    return (True if bm&(1<<(ord(k)-(ord("a")-1)))>0 else False)
 
 if len(sys.argv)>1:
     file=sys.argv[1]
@@ -99,27 +103,49 @@ def permute(orig,length,k):
     global pruned
     global shortest
     global best
+    best_ds[(orig,k)]=0
+    final_dist=inf
+    heap.append((orig,length,k))
     if tried%10000==0:
         print(f'tried {tried} paths and pruned {pruned}, current best path is {best} {shortest}')
-    if best_ds[(orig,k)] < length:
-#        print("Already too far, killing this path")
-        pruned+=1
-        continue
-    for node in (P.neighbors(orig)):
-#            print(orig,node)
-        thisk=k
-        if node.islower():
-            thisk=k2bm(node,k)
-        thisl=length+P.edges[orig][node]["steps"]
-        if best_ds[(node,k)]<thisl:
+    while len(heap)>0:
+        # take the oldest tuple off the stack
+        o,l,k = heap.popleft()
+        # Is this a tuple with all keys?
+        if k==fullmap:
+            #is it the best distance we've seen
+            if best_ds[(o,k)]<final_dist:
+                final_dist=best_ds[(o,k)]
+                continue
+        #Is this already worse than the best we've seen for this node with these keys?
+        if l>best_ds[(o,k)]:
+            #print("Already too far, killing this path")
+            pruned+=1
             continue
-        else:
+        # for next hops from this node(o)
+        for node in (P.neighbors(o)):
+            #print(o,node,l,k)
+            thisk=k
+            if best_ds[(node,k)]<=l:
+                pruned+=1
+                continue
+            # If lock and we don't have the key, abandon
+            if node.isupper() and not bm2k(node.lower(),thisk):
+                continue
+            # If key and we don't have it yet, add the key to mask
+            if node.islower() and node!='@' and not bm2k(node,thisk):
+                thisk=k2bm(node,thisk)
+            thisl=l+P.edges[(o,node)]['steps']
+            if best_ds[(node,thisk)]<thisl:
+                continue
+            else:
+                best_ds[(node,thisk)]=thisl
+                heap.append((node,thisl,thisk))
             #FIX ME here
-            thisl+=permute(node,k,l,thisl,thisph)
 #        except Exception as error:
 #            print("An exception occurred:", error)
 #            continue
-    return 0
+    return final_dist
 
 #view=nx.subgraph_view(G,filter_node=filter_locks)
 #print(f'view: {view.nodes}')
@@ -141,15 +167,13 @@ for i in itertools.combinations(kandls,2):
 
 
 print(f'P Graph edges:\n{P.edges(data=True)}')
-print(P.edges('@'))
 
 tried=0
 pruned=0
+shortest=0
 best=""
-best_ds={}
-shortest=10000000
-print("possible paths:")
-permute(origin,keysleft,locksleft,0,"")
+best_ds=defaultdict(lambda: inf)
+shortest=permute("@",0,0)
 print(shortest)
 print(f'tried {tried}')
 print(f'pruned {pruned}')
