@@ -16,7 +16,7 @@ grid=[]
 gdict={}
 for y,line in enumerate(f.readlines()):
     grid.append([])
-    for x in enumerate(line.rstrip('\n')):
+    for x,c in enumerate(line.rstrip('\n')):
         if c=="." or c.isupper() or c=="#":
             gdict[(x,y)]="."
             grid[y].append(c)
@@ -82,5 +82,5 @@ for portal in portals:
 
 path=nx.shortest_path(G, origin, target)
 print(path)
-print(len(path))
+print(len(path)-1)
 
