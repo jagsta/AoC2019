@@ -108,7 +108,7 @@ for node in P.nodes():
 #            layer=-1
         pneighbors[node][n]={"layer":0,"cost":P.edges[node,n]['steps']}
         #print (node,n,layer)
-        print (node,n)
+#        print (node,n)
 
 
 for portal in portals:
@@ -128,8 +128,8 @@ for portal in portals:
         raise ValueError(f'no pair found for portal {portal}')
 
 
-for node in pneighbors:
-    print(node,pneighbors[node])
+#for node in pneighbors:
+#    print(node,pneighbors[node])
 
 def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=len(pneighbors)):
     heap=deque()
