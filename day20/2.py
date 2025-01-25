@@ -3,6 +3,7 @@ from collections import deque
 from collections import defaultdict
 import networkx as nx
 import itertools
+from math import inf
 
 
 file="input.txt"
@@ -101,14 +102,15 @@ for i in itertools.combinations(portals,2):
 pneighbors=defaultdict(lambda:{})
 for node in P.nodes():
     for n in P.neighbors(node):
-        if node[2:]=="+" and n[2:]=="-":
-            layer=1
-        elif node[2:]=="-" and n[2:]=="+":
-            layer=-1
-        else:
-            layer=0
-        pneighbors[node][n]={"layer":layer,"cost":P.edges[node,n]['steps']}
-#        print (node,n,layer)
+#        if n=="ZZ+" or n=="AA+":
+#            layer=0
+#        elif n[2:]=="-":
+#            layer=1
+#        elif n[2:]=="+":
+#            layer=-1
+        pneighbors[node][n]={"layer":0,"cost":P.edges[node,n]['steps']}
+        #print (node,n,layer)
+        print (node,n)
 
 
 for portal in portals:
@@ -118,12 +120,58 @@ for portal in portals:
         target=portals[portal]
     elif portal[2:]=="+":
         pair=str(portal[:2]+"-")
-        pneighbors[portal][pair]={"layer":1,"cost":1}
+        pneighbors[portal][pair]={"layer":-1,"cost":1}
+        #pneighbors[portal][pair]={"layer":0,"cost":1}
     elif portal[2:]=="-":
         pair=str(portal[:2]+"+")
-        pneighbors[portal][pair]={"layer":-1,"cost":1}
+        pneighbors[portal][pair]={"layer":1,"cost":1}
+        #pneighbors[portal][pair]={"layer":0,"cost":1}
     else:
         raise ValueError(f'no pair found for portal {portal}')
 
+
 for node in pneighbors:
     print(node,pneighbors[node])
+
+print(len(pneighbors))
+def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=len(pneighbors)):
+    heap=deque()
+    distance=0
+    final_dist=inf
+    final_path=""
+    best_ds=defaultdict(lambda:inf)
+    best_ds[(origin,startlayer)]=distance
+    heap.append((origin,startlayer,distance,origin))
+    while len(heap)>0:
+        o,l,d,p = heap.popleft()
+#        print(o,l,d)
+        # Firstly, can we bail? have we been at this node at this layer with fewer steps?
+        if best_ds[(o,l)]<d:
+            print(f'pruning {o},{l},{d} - best ds {best_ds[(o,l)]}')
+            continue
+        if d>maxsteps or abs(l)>maxlayers:
+            continue
+            #raise ValueError('Too many steps taken: {d} exceeds {maxsteps}')
+        if o==target and l==0:
+            print(f'reached the end {o} at layer {l} with distance {d}')
+            if final_dist>best_ds[(o,l)]:
+                final_dist=best_ds[(o,l)]
+                final_path=p
+        #may be more to check here?
+        for k,v in pneighbors[o].items():
+            thisp=p
+            thisl=l
+            thisd=d
+            thisd+=v['cost']
+            thisl+=v['layer']
+            thisp+=","+str(thisl)+","+k
+            if best_ds[(k,thisl)]<thisd or (k=="ZZ+" and thisl!=0) or thisl<0:
+                continue
+            else:
+                print(f'{o} {l} {d} neighbor: {k} {v} new layer {thisl}, new dist {thisd}')
+                best_ds[(k,thisl)]=thisd
+                heap.append((k,thisl,thisd,thisp))
+    return final_dist,final_path
+
+result,path=pathfind("AA+","ZZ+")
+print(result,path)
