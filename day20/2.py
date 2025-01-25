@@ -15,19 +15,17 @@ f=open(file)
 
 portals=defaultdict()
 grid=[]
-gdict={}
 for y,line in enumerate(f.readlines()):
     grid.append([])
     for x,c in enumerate(line.rstrip('\n')):
         if c=="." or c.isupper() or c=="#":
-            gdict[(x,y)]="."
             grid[y].append(c)
         else:
             grid[y].append(" ")
 
 xmax=len(grid[2])-1
 ymax=len(grid)-1
-print(xmax,ymax)
+#print(xmax,ymax)
 for line in grid:
     s=""
     for c in line:
@@ -41,19 +39,19 @@ for y in range(ymax):
         if c.isupper() and c2.isupper():
             if x==0:
                 pname=str(c+c2+"+")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x+2,y)
             if x>xmax//2 and x<xmax-1:
                 pname=str(c+c2+"-")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x+2,y)
             if x==xmax-1:
                 pname=str(c+c2)+"+"
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x-1,y)
             if x<xmax//2 and x>1:
                 pname=str(c+c2+"-")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x-1,y)
 
 for x in range(xmax):
@@ -63,24 +61,24 @@ for x in range(xmax):
         if c.isupper() and c2.isupper():
             if y==0:
                 pname=str(c+c2+"+")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x,y+2)
             if y>ymax//2 and y<ymax-1:
                 pname=str(c+c2+"-")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x,y+2)
             if y==ymax-1:
                 pname=str(c+c2+"+")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x,y-1)
             if y<ymax//2 and y>1:
                 pname=str(c+c2+"-")
-                print(pname,x,y)
+#                print(pname,x,y)
                 portals[pname]=(x,y-1)
 
-print(grid)
-for i in portals:
-    print(i,portals[i])
+#print(grid)
+#for i in portals:
+#    print(i,portals[i])
 
 P = nx.Graph()
 G = nx.Graph()
@@ -94,7 +92,7 @@ for y in range(2,ymax):
 for i in itertools.combinations(portals,2):
      try:
          p = nx.shortest_path(G, portals[i[0]], portals[i[1]])
-         print(i[0],i[1],len(p))
+#         print(i[0],i[1],len(p))
          P.add_edge(i[0],i[1],steps=len(p)-1)
      except:
          pass
@@ -133,7 +131,6 @@ for portal in portals:
 for node in pneighbors:
     print(node,pneighbors[node])
 
-print(len(pneighbors))
 def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=len(pneighbors)):
     heap=deque()
     distance=0
@@ -174,4 +171,4 @@ def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=l
     return final_dist,final_path
 
 result,path=pathfind("AA+","ZZ+")
-print(result,path)
+print(f'distance:{result}\npath:{path})
