@@ -65,7 +65,7 @@ for x in range(xmax):
                 print(pname,x,y)
                 portals[pname]=(x,y+2)
             if y>ymax//2 and y<ymax-1:
-                pname=str(c+c2+"=")
+                pname=str(c+c2+"-")
                 print(pname,x,y)
                 portals[pname]=(x,y+2)
             if y==ymax-1:
@@ -81,8 +81,8 @@ print(grid)
 for i in portals:
     print(i,portals[i])
 
-G = nx.Graph()
 P = nx.Graph()
+G = nx.Graph()
 for y in range(2,ymax):
     for x in range(2,xmax):
         if grid[y][x]==".":
@@ -98,18 +98,32 @@ for i in itertools.combinations(portals,2):
      except:
          pass
 
+pneighbors=defaultdict(lambda:{})
 for node in P.nodes():
-    print (node, list(P.neighbors(node)))
+    for n in P.neighbors(node):
+        if node[2:]=="+" and n[2:]=="-":
+            layer=1
+        elif node[2:]=="-" and n[2:]=="+":
+            layer=-1
+        else:
+            layer=0
+        pneighbors[node][n]={"layer":layer,"cost":P.edges[node,n]['steps']}
+#        print (node,n,layer)
+
 
 for portal in portals:
-    if portal=="AA":
-        origin=portals[portal].pop()
-    elif portal=="ZZ":
-        target=portals[portal].pop()
+    if portal=="AA+":
+        origin=portals[portal]
+    elif portal=="ZZ+":
+        target=portals[portal]
+    elif portal[2:]=="+":
+        pair=str(portal[:2]+"-")
+        pneighbors[portal][pair]={"layer":1,"cost":1}
+    elif portal[2:]=="-":
+        pair=str(portal[:2]+"+")
+        pneighbors[portal][pair]={"layer":-1,"cost":1}
     else:
-        G.add_edge(portals[portal].pop(),portals[portal].pop())
+        raise ValueError(f'no pair found for portal {portal}')
 
-path=nx.shortest_path(G, origin, target)
-print(path)
-print(len(path)-1)
-
+for node in pneighbors:
+    print(node,pneighbors[node])
