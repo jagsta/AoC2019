@@ -147,13 +147,13 @@ def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=l
 #        print(o,l,d)
         # Firstly, can we bail? have we been at this node at this layer with fewer steps?
         if best_ds[(o,l)]<d:
-            print(f'pruning {o},{l},{d} - best ds {best_ds[(o,l)]}')
+#            print(f'pruning {o},{l},{d} - best ds {best_ds[(o,l)]}')
             continue
         if d>maxsteps or abs(l)>maxlayers:
             continue
             #raise ValueError('Too many steps taken: {d} exceeds {maxsteps}')
         if o==target and l==0:
-            print(f'reached the end {o} at layer {l} with distance {d}')
+#            print(f'reached the end {o} at layer {l} with distance {d}')
             if final_dist>best_ds[(o,l)]:
                 final_dist=best_ds[(o,l)]
                 final_path=p
@@ -168,7 +168,7 @@ def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=l
             if best_ds[(k,thisl)]<thisd or (k=="ZZ+" and thisl!=0) or thisl<0:
                 continue
             else:
-                print(f'{o} {l} {d} neighbor: {k} {v} new layer {thisl}, new dist {thisd}')
+#                print(f'{o} {l} {d} neighbor: {k} {v} new layer {thisl}, new dist {thisd}')
                 best_ds[(k,thisl)]=thisd
                 heap.append((k,thisl,thisd,thisp))
     return final_dist,final_path
