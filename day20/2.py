@@ -171,4 +171,4 @@ def pathfind(origin,target,startlayer=0,targetlayer=0,maxsteps=10000,maxlayers=l
     return final_dist,final_path
 
 result,path=pathfind("AA+","ZZ+")
-print(f'distance:{result}\npath:{path})
+print(f'distance:{result}\npath:{path}')
