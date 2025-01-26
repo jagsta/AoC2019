@@ -1,17 +1,40 @@
-NOT A J
-NOT B T
-OR J T
-NOT C J
-AND D J
-OR J T
+NOT B J
+NOT C T
 OR T J
 AND D J
-WALK
+AND H J
+NOT A T
+OR T J
+RUN
 
 
+OR D J
+OR H T
+AND J T
+NOT T J
+AND E T
+AND J T
+NOT T J
+OR I J
+RUN
+
+@................
+#####..#.########
+   @   .   .
+...@.............
+#####..#.########
+    ABCDEFGHI
+....@............
+#####.###########
 #___
 ---#
 
+if not a and d
+    jump
+if e and i
+    jump
+if d and h
+    jump
 
 NOT A T
 NOT B J
