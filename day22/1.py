@@ -58,6 +58,7 @@ for line in f.readlines():
     if match:
         print(line,"stack")
         deck=stack(deck)
+    print(f'current position:{list(deck.keys())[list(deck.values()).index(2019)]}')
 
 s=""
 for i in range(decksize):

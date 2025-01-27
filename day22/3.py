@@ -1,3 +1,17 @@
+## Jeez
+# I can combine two sequential operations of the same type
+# I can swap the order of two commands
+# So I should be able to collect all oprations of the same type together contiguously then combine them all into one operation
+#
+# That will reduce the shuffle to 3 statements
+# Each iteration is those 3 statemnts
+# So I can reduce iterations in the same way, to end up with 3 operations which
+# replicate the entire set of iterations
+
+# Then I can apply those in reverse, tracking position 2020 to work out what position it started in, and therefore it's value
+
+# Easy! :)
+# Rules are in the testing.txt file
 import sys
 import re
 from collections import defaultdict

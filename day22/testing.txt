@@ -1,0 +1,176 @@
+0123456789
+
+cut 3
+
+3456789012
+
+cut 5
+
+8901234567
+
+cut 8
+
+6789012345
+
+combine 2 cuts as cut(a+b) % count
+
+combine 2 stacks as _do nothing_
+
+combine 2 increments...
+
+0123456789
+
+deal incr 3
+
+0741852963
+
+deal incr 7
+
+0123456789
+
+deal incr 9
+
+0369258147
+
+combine 2 increments as increment(a*b)%count
+
+how to switch two in the order of operations?
+
+cut 3
+increment 3
+
+0123456789
+3456789012
+3074185296
+
+increment 3
+cut? 9 / -1
+
+0123456789
+0741852963
+3074185296
+
+cut 2
+increment 7
+0123456789
+2345678901
+2581470369
+
+increment 7
+cut 4 / -6
+0123456789
+0369258147
+2581470369
+
+cut 4
+increment 3
+0123456789
+4567890123
+4185296307
+
+increment 3
+cut 2 / -8
+0123456789
+0741852963
+4185296307
+
+switch by increment a, cut(a*b)%count
+
+increment a
+cut b
+
+switch by cut (count-(a*b)%count), increment a
+
+cut 3
+stack
+
+0123456789
+3456789012
+2109876543
+
+stack
+cut 7
+0123456789
+9876543210
+
+switch by stack, cut (count-a)
+
+switch by cut (count-a), stack
+
+increment 7
+stack
+0123456789
+0369258147
+7418529630
+
+stack
+increment 7
+cut 4
+0123456789
+9876543210
+9630741852
+
+cut 9
+stack
+increment 3
+0123456789
+9012345678
+9630741852
+
+icrement 3
+stack
+0123456789
+0741852963
+3692581470
+
+stack
+increment 3
+cut 8
+0123456789
+9876543210
+9258147036
+
+increment 9
+stack
+0123456789
+0987654321
+1234567890
+
+stack
+inc 9
+cut 2
+0123456789
+9876543210
+9012345678
+
+reverse with stack, increment a, cut (count+1-a)
+
+stack
+inc 9
+0123456789
+9876543210
+9012345678
+
+inc 9
+stack
+cut 8
+0123456789
+0987654321
+1234567890
+
+reverse with increment a, stack, cut (a-1)?
+
+stack
+inc 3
+0123456789
+9876543210
+9258147036
+
+inc3
+stack
+cut 2
+0123456789
+0741852963
+3692581470
+
+
