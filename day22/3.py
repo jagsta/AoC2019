@@ -1,17 +1,3 @@
-## Jeez
-# I can combine two sequential operations of the same type
-# I can swap the order of two commands
-# So I should be able to collect all oprations of the same type together contiguously then combine them all into one operation
-#
-# That will reduce the shuffle to 3 statements
-# Each iteration is those 3 statemnts
-# So I can reduce iterations in the same way, to end up with 3 operations which
-# replicate the entire set of iterations
-
-# Then I can apply those in reverse, tracking position 2020 to work out what position it started in, and therefore it's value
-
-# Easy! :)
-# Rules are in the testing.txt file
 import sys
 import re
 from collections import defaultdict
@@ -38,13 +24,46 @@ f=open(file)
 
 cpos=targetcard
 
+def switch_rules(rule1,rule2):
+    if rule1[0]==rcut:
+        if rule2[0]==rdeal:
+            return [(rdeal,rule1[1]),(rcut,(rule1[1]*rule2[1])%decksize)]
+        elif rule2[0]==rstack:
+            return [(rstack,None),(rcut,decksize-rule1[1])]
+    elif rule1[0]==rdeal:
+        if rule2[0]==rcut:
+            return [(rcut,decksize-((rule1[1]*rule2[1])%decksize)),(rdeal,rule1[1])]
+        elif rule2[0]==rstack:
+            return [(rstack,None),(rdeal,rule1[1]),(rcut,decksize+1-rule1[1])]
+    elif rule1[0]==rstack:
+        if rule2[0]==rcut:
+            return [(rcut,decksize-rule2[1]),(rstack,None)]
+        elif rule2[0]==rdeal:
+            return [(rdeal,rule2[1]),(rstack,None),(rcut,rule2[1]-1)]
+
+def sort_rules(rule1,rule2):
+    if rule1[0]==rcut:
+        if rule2[0]==rdeal:
+            return [(rdeal,rule2[1]),(rcut,(rule1[1]*rule2[1])%decksize)]
+        elif rule2[0]==rstack:
+            return [(rstack,None),(rcut,decksize-rule1[1])]
+    elif rule1[0]==rdeal:
+#        if rule2[0]==rcut:
+#            return [(rcut,decksize-((rule1[1]*rule2[1])%decksize)),(rdeal,rule1[1])]
+        if rule2[0]==rstack:
+            return [(rstack,None),(rdeal,rule1[1]),(rcut,decksize+1-rule1[1])]
+#    elif rule1[0]==rstack:
+#        if rule2[0]==rcut:
+#            return [(rcut,decksize-rule2[1]),(rstack,None)]
+#        elif rule2[0]==rdeal:
+#            return [(rdeal,rule2[1]),(rstack,None),(rcut,rule2[1]-1)]
+    return [rule1,rule2]
+
+
 def rdeal(cpos,increment):
-    while True:
-        if cpos%increment!=0:
-            cpos+=decksize
-        else:
-            break
-    return cpos//increment
+    print(cpos,increment)
+
+    return (cpos*pow(increment,-1,decksize))%decksize
 
 def rcut(cpos,position):
     position*=-1
@@ -79,19 +98,108 @@ for line in f.readlines():
 #            print(line,"stack")
         #cpos=bigstack(cpos)
         shuffle.append((rstack,None))
-shuffle.reverse()
 
-posset={}
-for repeats in range(iterations):
-    for line in shuffle:
-        #print (f'current position:{cpos}')
-        #print(line)
-        cpos=line[0](cpos,line[1])
-    if cpos in posset:
-        raise ValueError(f'collision after {repeats}:{cpos} originally seen at end of iteration {posset[cpos]}')
-    else:
-        posset[cpos]=repeats
-    if repeats%1000==0:
-        print(repeats)
+sortedrules=shuffle.copy()
+
+# reorder to contiguous operations
+def reorder(rules):
+    while True:
+        reordered=0
+        bottom=len(rules)-1
+        for i in range(0,bottom):
+            rule1=rules[i]
+            rule2=rules[i+1]
+            if rule1[0]!=rule2[0]:
+                print(f'swapping {rule1} for {rule2}')
+                neworder=sort_rules(rule1,rule2)
+                rules[i]=neworder[0]
+                rules[i+1]=neworder[1]
+                if len(neworder)>2:
+                    rules.insert(i+2,neworder[2])
+                reordered+=1
+        if reordered<3:
+            break
+    return rules
+
+# consolidate
+def consolidate(rules):
+    temprules=[]
+    rule1=rules[0]
+    stackcount=0
+    for i in range(len(rules)-1):
+        rule2=rules[i+1]
+        if rule1[0]==rstack:
+            stackcount+=1
+        if rule1[0]==rule2[0]:
+            if rule1[0]==rcut:
+                rule1=(rcut,(rule1[1]+rule2[1])%decksize)
+            elif rule1[0]==rdeal:
+                rule1=(rdeal,(rule1[1]*rule2[1])%decksize)
+        if i+1==len(rules)-1:
+            temprules.append(rule1)
+        if rule1[0]!=rule2[0]:
+            if rule1[0]==rstack and stackcount%2==0:
+                print(f'even number of stack rules, no stacks in reduced set')
+            else:
+                temprules.append(rule1)
+            rule1=rules[i+1]
+            continue
+    return temprules
+
+sortedrules=reorder(sortedrules)
+sortedrules=consolidate(sortedrules)
+
+for rule in sortedrules:
+    print(rule)
+
+
+#phew, I now have a 3 element ruleset which represents 1 iteration.
+# I need to double it, order, consolidate, repeatedly - 2,4,8,16,32...
+# for each consolidated list which represents a power of two factor of the number of iterations, add to the final ruleset, then repeat the ordering, consolidation a final time
+
+def powersoftwo(x):
+    powers = []
+    i = 1
+    while i <= x:
+        if i & x:
+            powers.append(i)
+        i <<= 1
+    return powers
+
+powers=powersoftwo(iterations)
+#powers=powersoftwo(101741582076661)
+print(powers)
+
+power=0
+finalrules=[]
+currentrules=sortedrules.copy()
+while True:
+    if 2**power in powers:
+        print(f'adding 2^{power} copies of ruleset')
+        finalrules+=currentrules
+    if 2**power > powers[-1]:
+        break
+    power+=1
+    currentrules+=currentrules
+    currentrules=reorder(currentrules)
+    currentrules=consolidate(currentrules)
+
+for rule in finalrules:
+    print(rule)
+
+finalrules=reorder(finalrules)
+finalrules=consolidate(finalrules)
+
+print("Final rule set is:")
+for rule in finalrules:
+    print(rule)
+
+finalrules.reverse()
+print("Reverse rule set is:")
+for rule in finalrules:
+    print(rule)
+
+for line in finalrules:
+    cpos=line[0](cpos,line[1])
 
 print(cpos)
